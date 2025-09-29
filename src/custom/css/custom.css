@@ -10,7 +10,10 @@
   padding: 0rem 2.5rem;
 }
 
-.existingGroups, .activeJobs, .jobReport, .logs {
+.existingGroups,
+.activeJobs,
+.jobReport,
+.logs {
   margin-bottom: -35px;
 }
 
@@ -51,7 +54,7 @@
 .jobReport .body {
   display: flex;
   flex-direction: column;
-  height:  765.5px;
+  height: 765.5px;
   scale: 0.9;
   margin-top: -50px;
 }
@@ -67,7 +70,7 @@
 .logs .body {
   display: flex;
   flex-direction: column;
-  height:  765.5px;
+  height: 765.5px;
   scale: 0.9;
   margin-top: -45px;
 }
@@ -163,7 +166,9 @@
 
 .cellAction {
   display: flex;
+  height: 100%;
   gap: 1rem;
+  align-items: center;
 }
 
 .addNewGroup > .body {
