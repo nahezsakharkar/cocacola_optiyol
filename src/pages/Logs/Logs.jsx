@@ -218,7 +218,9 @@ function Logs() {
       headerName: "Serial No.",
       // flex: 1,
       width: 100,
-      valueGetter: (params) => params.api.getRowIndex(params.row.id) + 1,
+      valueGetter: (value, row, column, apiRef) => {
+        return apiRef.current.getRowIndexRelativeToVisibleRows(row.id) + 1;
+      },
     },
     {
       field: "groupname",
