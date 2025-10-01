@@ -5,42 +5,12 @@ export default Object.freeze({
 
   cryptoBaseURLKey: "Coke-Login-BaseURL",
 
-  loginBaseURL: "http://localhost:7070/",
+  loginBaseURL: "http://localhost:7777/",
 
   dynamicBaseURL: (PORT) => "http://localhost:" + PORT + "/",
 
   dynamicBaseURLPORT: (companyId) => {
-    if (companyId === "1428,1429,1430,1364") {
-      return 7071;
-    } else if (companyId === "1428,1429,1430") {
-      return 7071;
-    } else if (companyId === "1428,1429,1364") {
-      return 7071;
-    } else if (companyId === "1428,1430,1364") {
-      return 7071;
-    } else if (companyId === "1429,1430,1364") {
-      return 7071;
-    } else if (companyId === "1428,1429") {
-      return 7071;
-    } else if (companyId === "1428,1430") {
-      return 7071;
-    } else if (companyId === "1428,1364") {
-      return 7071;
-    } else if (companyId === "1429,1430") {
-      return 7070;
-    } else if (companyId === "1429,1364") {
-      return 7071;
-    } else if (companyId === "1430,1364") {
-      return 7071;
-    } else if (companyId === "1428") {
-      return 7071;
-    } else if (companyId === "1429") {
-      return 7070;
-    } else if (companyId === "1430") {
-      return 7070;
-    } else if (companyId === "1364") {
-      return 7071;
-    }
+    return 7777;
   },
 
   correctExpiry: (expiry) =>

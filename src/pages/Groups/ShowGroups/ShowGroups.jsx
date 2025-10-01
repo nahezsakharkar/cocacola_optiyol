@@ -9,6 +9,7 @@ import schedule from "../../../services/scheduleService";
 import OurModal from "../../../components/Common/OurModal/OurModal";
 import auth from "../../../services/authService";
 import "../../../custom/css/custom.css";
+import RunOutboundDeliveriesModal from "../../../components/Groups/ShowGroups/RunOutboundDeliveriesModal";
 
 function ShowGroups() {
   const navigate = useNavigate();
@@ -25,6 +26,47 @@ function ShowGroups() {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
+  const [specialRunOpen, setSpecialRunOpen] = useState(false);
+
+  const [filters, setFilters] = useState({
+    salesOrg: { operator: "equals", value: "" },
+    shippingPoint: { operator: "equals", value: "" },
+    deliveryDate: { operator: "equals", value: "" },
+    customerNumber: { operator: "equals", value: "" },
+    deliveryDocument: { operator: "equals", value: "" },
+  });
+
+  const stringOperators = [
+    { label: "Equals", value: "equals" },
+    { label: "Not Equals", value: "notequals" },
+    { label: "Like", value: "like" },
+    { label: "Not Like", value: "notlike" },
+    { label: "In", value: "in" },
+    { label: "Not In", value: "notin" },
+    { label: "Is Null", value: "isnull" },
+    { label: "Is Not Null", value: "isnotnull" },
+  ];
+
+  const dateOperators = [
+    { label: "Equals", value: "equals" },
+    { label: "Not Equals", value: "notequals" },
+    { label: "Before", value: "lt" },
+    { label: "Before or Equal", value: "le" },
+    { label: "After", value: "gt" },
+    { label: "After or Equal", value: "ge" },
+    { label: "Between", value: "between" },
+  ];
+
+  const numericOperators = [
+    { label: "Equals", value: "equals" },
+    { label: "Not Equals", value: "notequals" },
+    { label: "Less Than", value: "lt" },
+    { label: "Less or Equal", value: "le" },
+    { label: "Greater Than", value: "gt" },
+    { label: "Greater or Equal", value: "ge" },
+    { label: "Between", value: "between" },
+  ];
+
   async function getAdmin() {
     const data = await auth.getCurrentUserDetails();
     setAdmin(data.payload);
@@ -39,30 +81,35 @@ function ShowGroups() {
 
   useEffect(() => {
     getAdmin();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // console.log(groupList)
 
   const openModal = (thisRow, thisOperation) => {
     setRow(thisRow);
     setOperation(thisOperation);
+
     if (thisOperation === "delete") {
       setModalTitle("Delete " + thisRow.groupname + " Job Group?");
       setModalDesc(
         "Do you really wish to Remove " +
           thisRow.groupname +
-          " from the System? This Group's data will be lost. "
+          " from the System? This Group's data will be lost."
       );
       handleOpen();
     } else if (thisOperation === "run") {
-      setModalTitle("Start " + thisRow.groupname + " Job Group?");
-      setModalDesc(
-        "Do you really wish to Start " +
-          thisRow.groupname +
-          " Job Group? This Group's Scheduler will start running. "
-      );
-      handleOpen();
+      if (thisRow.id === 1) {
+        setModalTitle("Run " + thisRow.groupname + " Job Group?");
+        setModalDesc(
+          "Fill filters and run " + thisRow.groupname + " Job Group."
+        );
+        setSpecialRunOpen(true);
+      } else {
+        setModalTitle("Start " + thisRow.groupname + " Job Group?");
+        setModalDesc(
+          "Do you really wish to Start " + thisRow.groupname + " Job Group?"
+        );
+        handleOpen();
+      }
     }
   };
 
@@ -72,8 +119,6 @@ function ShowGroups() {
     } else if (operation === "run") {
       handleRun();
       getGroupsData("Active,Disabled");
-    } else if (operation === "disable") {
-      // handleDisable();
     }
   };
 
@@ -93,26 +138,44 @@ function ShowGroups() {
     setOpen(false);
     schedule.schedulerStart(row.id);
     getGroupsData("Active,Disabled");
-    // setTimeout(() => {
-    // }, 300);
-    // console.log(data)
-    // if (data.message === "completed") {
-    //   toast.success("Schedule was Completed Successfully");
-    //   // getGroupsData("Active,Disabled");
-    // } else {
-    //   toast.error("There was some Error while Completing a Schedule");
-    // }
   }
 
-  // async function handleDisable() {
-  //   const data = await schedule.disableGroup(row.id);
-  //   if (data.message === "group deleted") {
-  //     toast.success("Schedule was Deleted Successfully");
-  //   } else {
-  //     toast.error("There was some Error while deleting a Schedule");
-  //   }
-  //   setOpen(false);
-  // }
+  const handleSpecialRun = () => {
+    const payload = [];
+
+    Object.keys(filters).forEach((key) => {
+      const field = key;
+      const filter = filters[key];
+
+      if (filter.operator === "between") {
+        payload.push({
+          field,
+          op: filter.operator,
+          value: `${filter.from}-${filter.to}`,
+        });
+      } else if (
+        filter.operator !== "isnull" &&
+        filter.operator !== "isnotnull"
+      ) {
+        payload.push({
+          field,
+          op: filter.operator,
+          value: filter.value,
+        });
+      } else {
+        payload.push({
+          field,
+          op: filter.operator,
+        });
+      }
+    });
+
+    console.log("Special Run Payload:", payload);
+    toast.success("Special Run Started Successfully");
+    setSpecialRunOpen(false);
+    schedule.schedulerStart(row.id, payload);
+    getGroupsData("Active,Disabled");
+  };
 
   const columns = [
     { field: "id", headerName: "Id", flex: 0.2, width: 80 },
@@ -120,7 +183,6 @@ function ShowGroups() {
       field: "groupnameStatus",
       headerName: "Job Group",
       flex: 0.8,
-      // width: 270,
       renderCell: (params) => {
         return (
           <div
@@ -139,24 +201,9 @@ function ShowGroups() {
         );
       },
     },
-    {
-      field: "scheduled",
-      headerName: "Schedule",
-      flex: 0.5,
-      // width: 210,
-    },
-    {
-      field: "scheduledstatus",
-      headerName: "Status",
-      flex: 0.5,
-      // width: 150,
-    },
-    {
-      field: "companyid",
-      headerName: "Company Id",
-      flex: 0.4,
-      // width: 140,
-    },
+    { field: "scheduled", headerName: "Schedule", flex: 0.5 },
+    { field: "scheduledstatus", headerName: "Status", flex: 0.5 },
+    { field: "companyid", headerName: "Company Id", flex: 0.4 },
     {
       field: "action",
       headerName: "Action",
@@ -165,7 +212,6 @@ function ShowGroups() {
       renderCell: (params) => {
         return (
           <div className="cellAction">
-            {/* disabled for support */}
             <button
               type="button"
               className="btn btn-dark btn-icon-text btn-sm"
@@ -178,7 +224,7 @@ function ShowGroups() {
               {admin.admintype === "Admin" ? "Edit" : "View"}
               <i className="mdi mdi-file-check btn-icon-append"></i>
             </button>
-            {/* disabled for support */}
+
             {admin.admintype === "Admin" && (
               <button
                 type="button"
@@ -188,6 +234,7 @@ function ShowGroups() {
                 <i className="fa fa-ban btn-icon-append"></i>
               </button>
             )}
+
             <Tooltip
               title={
                 params.row.runningstatus === "Running"
@@ -200,14 +247,7 @@ function ShowGroups() {
               <span>
                 <button
                   type="button"
-                  disabled={
-                    params.row.runningstatus === "Running" ? true : false
-                  }
-                  style={
-                    params.row.runningstatus === "Running"
-                      ? { pointerEvents: "none" }
-                      : {}
-                  }
+                  disabled={params.row.runningstatus === "Running"}
                   className="btn btn-warning btn-icon-text btn-sm"
                   onClick={() => openModal(params.row, "run")}
                 >
@@ -216,7 +256,7 @@ function ShowGroups() {
                 </button>
               </span>
             </Tooltip>
-            {/* disabled for support */}
+
             {admin.admintype === "Admin" && (
               <button
                 type="button"
@@ -255,6 +295,7 @@ function ShowGroups() {
           </Stack>
         )}
         <DataTable pageSize={15} columns={columns} rows={rows} toolbar />
+
         <OurModal
           open={open}
           setOpen={setOpen}
@@ -263,6 +304,20 @@ function ShowGroups() {
           handleYes={handleOperation}
           title={modalTitle}
           description={modalDesc}
+        />
+
+        {/* Special Run Modal */}
+        <RunOutboundDeliveriesModal
+          open={specialRunOpen}
+          onClose={() => setSpecialRunOpen(false)}
+          onRun={handleSpecialRun}
+          modalTitle={modalTitle}
+          modalDesc={modalDesc}
+          filters={filters}
+          setFilters={setFilters}
+          stringOperators={stringOperators}
+          dateOperators={dateOperators}
+          numericOperators={numericOperators}
         />
       </div>
     </div>
