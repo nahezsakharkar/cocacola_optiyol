@@ -14,11 +14,20 @@ export default function RunOutboundDeliveriesModal({
   numericOperators,
 }) {
   const renderField = (label, key, type, operators) => (
-    <div style={{ marginBottom: "15px" }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        marginBottom: "15px",
+      }}
+    >
+      {/* Label */}
+      <Typography style={{ width: "150px" }}>{label}</Typography>
+
+      {/* Operator */}
       <TextField
-        label={`${label} Operator`}
         select
-        fullWidth
         size="small"
         value={filters[key].operator}
         onChange={(e) =>
@@ -27,6 +36,7 @@ export default function RunOutboundDeliveriesModal({
             [key]: { ...filters[key], operator: e.target.value },
           })
         }
+        style={{ width: "150px" }}
       >
         {operators.map((op) => (
           <MenuItem key={op.value} value={op.value}>
@@ -35,12 +45,12 @@ export default function RunOutboundDeliveriesModal({
         ))}
       </TextField>
 
+      {/* Values */}
       {filters[key].operator === "between" ? (
-        <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+        <>
           <TextField
             label="From"
             type={type}
-            fullWidth
             size="small"
             value={filters[key].from}
             onChange={(e) =>
@@ -50,11 +60,11 @@ export default function RunOutboundDeliveriesModal({
               })
             }
             InputLabelProps={type === "date" ? { shrink: true } : undefined}
+            style={{ width: "150px" }}
           />
           <TextField
             label="To"
             type={type}
-            fullWidth
             size="small"
             value={filters[key].to}
             onChange={(e) =>
@@ -64,16 +74,15 @@ export default function RunOutboundDeliveriesModal({
               })
             }
             InputLabelProps={type === "date" ? { shrink: true } : undefined}
+            style={{ width: "150px" }}
           />
-        </div>
+        </>
       ) : filters[key].operator === "isnull" ||
         filters[key].operator === "isnotnull" ? null : (
         <TextField
           label="Value"
           type={type}
-          fullWidth
           size="small"
-          style={{ marginTop: "8px" }}
           value={filters[key].value}
           onChange={(e) =>
             setFilters({
@@ -82,6 +91,7 @@ export default function RunOutboundDeliveriesModal({
             })
           }
           InputLabelProps={type === "date" ? { shrink: true } : undefined}
+          style={{ width: "150px" }}
         />
       )}
     </div>
@@ -96,7 +106,7 @@ export default function RunOutboundDeliveriesModal({
           left: "50%",
           transform: "translate(-50%, -50%)",
           backgroundColor: "white",
-          width: "650px",
+          width: "750px",
           maxHeight: "80vh",
           overflowY: "auto",
           padding: "15px 20px",
