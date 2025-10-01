@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Modal, Typography, TextField, MenuItem, Button } from "@mui/material";
 
 export default function RunOutboundDeliveriesModal({
@@ -13,92 +13,122 @@ export default function RunOutboundDeliveriesModal({
   dateOperators,
   numericOperators,
 }) {
-  const renderField = (label, key, type, operators) => (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        marginBottom: "15px",
-      }}
-    >
-      {/* Label */}
-      <Typography style={{ width: "150px" }}>{label}</Typography>
+  const [localFilters, setLocalFilters] = useState(filters);
 
-      {/* Operator */}
-      <TextField
-        select
-        size="small"
-        value={filters[key].operator}
-        onChange={(e) =>
-          setFilters({
-            ...filters,
-            [key]: { ...filters[key], operator: e.target.value },
-          })
-        }
-        style={{ width: "150px" }}
+  useEffect(() => {
+    setLocalFilters(filters); // Reset local filters when modal opens
+  }, [open, filters]);
+
+  const resetFilters = () => {
+    const reset = {};
+    for (let key in filters) {
+      reset[key] = { operator: "", value: "", from: "", to: "" };
+    }
+    setLocalFilters(reset);
+    setFilters(reset);
+  };
+
+  const handleRun = () => {
+    setFilters(localFilters); // Apply filters
+    resetFilters(); // Reset fields
+    onRun();
+  };
+
+  const handleClose = () => {
+    resetFilters(); // Reset fields
+    onClose();
+  };
+
+  const renderField = (label, key, type, operators) => {
+    const field = localFilters[key] || { operator: "", value: "", from: "", to: "" };
+
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          marginBottom: "15px",
+          flexWrap: "wrap",
+        }}
       >
-        {operators.map((op) => (
-          <MenuItem key={op.value} value={op.value}>
-            {op.label}
-          </MenuItem>
-        ))}
-      </TextField>
+        {/* Label */}
+        <Typography style={{ minWidth: "150px" }}>{label}</Typography>
 
-      {/* Values */}
-      {filters[key].operator === "between" ? (
-        <>
-          <TextField
-            label="From"
-            type={type}
-            size="small"
-            value={filters[key].from}
-            onChange={(e) =>
-              setFilters({
-                ...filters,
-                [key]: { ...filters[key], from: e.target.value },
-              })
-            }
-            InputLabelProps={type === "date" ? { shrink: true } : undefined}
-            style={{ width: "150px" }}
-          />
-          <TextField
-            label="To"
-            type={type}
-            size="small"
-            value={filters[key].to}
-            onChange={(e) =>
-              setFilters({
-                ...filters,
-                [key]: { ...filters[key], to: e.target.value },
-              })
-            }
-            InputLabelProps={type === "date" ? { shrink: true } : undefined}
-            style={{ width: "150px" }}
-          />
-        </>
-      ) : filters[key].operator === "isnull" ||
-        filters[key].operator === "isnotnull" ? null : (
+        {/* Operator */}
         <TextField
-          label="Value"
-          type={type}
+          select
           size="small"
-          value={filters[key].value}
+          value={field.operator}
           onChange={(e) =>
-            setFilters({
-              ...filters,
-              [key]: { ...filters[key], value: e.target.value },
+            setLocalFilters({
+              ...localFilters,
+              [key]: { ...field, operator: e.target.value },
             })
           }
-          InputLabelProps={type === "date" ? { shrink: true } : undefined}
-          style={{ width: "150px" }}
-        />
-      )}
-    </div>
-  );
+          style={{ width: "150px" }} // Fixed operator width
+        >
+          {operators.map((op) => (
+            <MenuItem key={op.value} value={op.value}>
+              {op.label}
+            </MenuItem>
+          ))}
+        </TextField>
+
+        {/* Values */}
+        {field.operator === "between" ? (
+          <>
+            <TextField
+              label="From"
+              type={type}
+              size="small"
+              value={field.from}
+              onChange={(e) =>
+                setLocalFilters({
+                  ...localFilters,
+                  [key]: { ...field, from: e.target.value },
+                })
+              }
+              InputLabelProps={type === "date" ? { shrink: true } : undefined}
+              style={{ flex: "1 1 auto", minWidth: "120px" }} // Dynamic width
+            />
+            <TextField
+              label="To"
+              type={type}
+              size="small"
+              value={field.to}
+              onChange={(e) =>
+                setLocalFilters({
+                  ...localFilters,
+                  [key]: { ...field, to: e.target.value },
+                })
+              }
+              InputLabelProps={type === "date" ? { shrink: true } : undefined}
+              style={{ flex: "1 1 auto", minWidth: "120px" }} // Dynamic width
+            />
+          </>
+        ) : field.operator === "isnull" || field.operator === "isnotnull" ? null : (
+          <TextField
+            label="Value"
+            type={type}
+            size="small"
+            value={field.value}
+            onChange={(e) =>
+              setLocalFilters({
+                ...localFilters,
+                [key]: { ...field, value: e.target.value },
+              })
+            }
+            InputLabelProps={type === "date" ? { shrink: true } : undefined}
+            style={{ flex: "1 1 auto", minWidth: "120px" }} // Dynamic width
+          />
+        )}
+      </div>
+    );
+  };
 
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={handleClose}>
       <div
         style={{
           position: "absolute",
@@ -106,49 +136,27 @@ export default function RunOutboundDeliveriesModal({
           left: "50%",
           transform: "translate(-50%, -50%)",
           backgroundColor: "white",
-          width: "750px",
-          maxHeight: "80vh",
-          overflowY: "auto",
+          minWidth: "400px",
+          maxWidth: "90%",
           padding: "15px 20px",
           borderRadius: "6px",
           outline: "none",
           boxShadow: "0px 2px 8px rgba(0,0,0,0.2)",
         }}
       >
-        <Typography
-          variant="h6"
-          style={{ marginBottom: "8px", fontWeight: "bold" }}
-        >
+        <Typography variant="h6" style={{ marginBottom: "8px", fontWeight: "bold" }}>
           {modalTitle}
         </Typography>
 
-        <Typography
-          variant="body2"
-          style={{ marginBottom: "15px", color: "#555" }}
-        >
+        <Typography variant="body2" style={{ marginBottom: "15px", color: "#555" }}>
           {modalDesc}
         </Typography>
 
         {renderField("Sales Organization", "salesOrg", "text", stringOperators)}
-        {renderField(
-          "Shipping Point",
-          "shippingPoint",
-          "number",
-          numericOperators
-        )}
+        {renderField("Shipping Point", "shippingPoint", "number", numericOperators)}
         {renderField("Delivery Date", "deliveryDate", "date", dateOperators)}
-        {renderField(
-          "Customer Number",
-          "customerNumber",
-          "number",
-          numericOperators
-        )}
-        {renderField(
-          "Delivery Document",
-          "deliveryDocument",
-          "number",
-          numericOperators
-        )}
+        {renderField("Customer Number", "customerNumber", "number", numericOperators)}
+        {renderField("Delivery Document", "deliveryDocument", "number", numericOperators)}
 
         <div
           style={{
@@ -156,22 +164,13 @@ export default function RunOutboundDeliveriesModal({
             justifyContent: "flex-end",
             gap: "8px",
             marginTop: "15px",
+            flexWrap: "wrap",
           }}
         >
-          <Button
-            variant="contained"
-            color="success"
-            size="small"
-            onClick={onRun}
-          >
+          <Button variant="contained" color="success" size="small" onClick={handleRun}>
             Run
           </Button>
-          <Button
-            variant="outlined"
-            color="error"
-            size="small"
-            onClick={onClose}
-          >
+          <Button variant="outlined" color="error" size="small" onClick={handleClose}>
             Cancel
           </Button>
         </div>
