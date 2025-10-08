@@ -140,27 +140,51 @@ function ShowGroups() {
     getGroupsData("Active,Disabled");
   }
 
-  const handleSpecialRun = () => {
+  const handleSpecialRun = (appliedFilters) => {
     const payload = [];
 
-    Object.keys(filters).forEach((key) => {
+    // Helper to format "yyyy-MM-dd" → "ddMMyyyy"
+    const formatDate = (dateStr) => {
+      if (!dateStr) return "";
+      const [year, month, day] = dateStr.split("-");
+      return `${day}${month}${year}`;
+    };
+
+    Object.keys(appliedFilters).forEach((key) => {
+      const filter = appliedFilters[key];
       const field = key;
-      const filter = filters[key];
+
+      if (!filter.operator) return; // skip empty filters
 
       if (filter.operator === "between") {
+        let from = filter.from;
+        let to = filter.to;
+
+        // Format date fields only
+        if (field.toLowerCase().includes("date")) {
+          from = formatDate(from);
+          to = formatDate(to);
+        }
+
         payload.push({
           field,
           op: filter.operator,
-          value: `${filter.from}-${filter.to}`,
+          value: `${from}-${to}`,
         });
       } else if (
         filter.operator !== "isnull" &&
         filter.operator !== "isnotnull"
       ) {
+        let value = filter.value;
+
+        if (field.toLowerCase().includes("date")) {
+          value = formatDate(value);
+        }
+
         payload.push({
           field,
           op: filter.operator,
-          value: filter.value,
+          value,
         });
       } else {
         payload.push({
@@ -171,9 +195,9 @@ function ShowGroups() {
     });
 
     console.log("Special Run Payload:", payload);
-    toast.success("Special Run Started Successfully");
     setSpecialRunOpen(false);
-    schedule.schedulerStart(row.id, payload);
+    schedule.schedulerStartOutbound(payload);
+    toast.success("Special Run Started Successfully");
     getGroupsData("Active,Disabled");
   };
 

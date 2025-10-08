@@ -279,6 +279,17 @@ export async function schedulerStart(groupId) {
   return await response.data;
 }
 
+export async function schedulerStartOutbound(formValues) {
+  const user = JSON.parse(localStorage.getItem(sessionKey));
+
+  const response = http.post(baseURL + "api/scheduler/outbound", formValues, {
+    headers: {
+      Authorization: user.jwtToken,
+    },
+  });
+  return await response.data;
+}
+
 const schedule = {
   //Groups
   createGroup,
@@ -305,6 +316,7 @@ const schedule = {
   getJoblogsQueries,
   //processes
   schedulerStart,
+  schedulerStartOutbound,
 };
 
 export default schedule;

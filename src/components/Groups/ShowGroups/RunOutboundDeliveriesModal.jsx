@@ -30,8 +30,8 @@ export default function RunOutboundDeliveriesModal({
 
   const handleRun = () => {
     setFilters(localFilters); // Apply filters
-    resetFilters(); // Reset fields
-    onRun();
+    onRun(localFilters); // Pass localFilters directly so parent gets correct data
+    resetFilters(); // Reset fields AFTER running
   };
 
   const handleClose = () => {
@@ -40,7 +40,12 @@ export default function RunOutboundDeliveriesModal({
   };
 
   const renderField = (label, key, type, operators) => {
-    const field = localFilters[key] || { operator: "", value: "", from: "", to: "" };
+    const field = localFilters[key] || {
+      operator: "",
+      value: "",
+      from: "",
+      to: "",
+    };
 
     return (
       <div
@@ -107,7 +112,8 @@ export default function RunOutboundDeliveriesModal({
               style={{ flex: "1 1 auto", minWidth: "120px" }} // Dynamic width
             />
           </>
-        ) : field.operator === "isnull" || field.operator === "isnotnull" ? null : (
+        ) : field.operator === "isnull" ||
+          field.operator === "isnotnull" ? null : (
           <TextField
             label="Value"
             type={type}
@@ -136,7 +142,7 @@ export default function RunOutboundDeliveriesModal({
           left: "50%",
           transform: "translate(-50%, -50%)",
           backgroundColor: "white",
-          minWidth: "400px",
+          minWidth: "850px",
           maxWidth: "90%",
           padding: "15px 20px",
           borderRadius: "6px",
@@ -144,19 +150,40 @@ export default function RunOutboundDeliveriesModal({
           boxShadow: "0px 2px 8px rgba(0,0,0,0.2)",
         }}
       >
-        <Typography variant="h6" style={{ marginBottom: "8px", fontWeight: "bold" }}>
+        <Typography
+          variant="h6"
+          style={{ marginBottom: "8px", fontWeight: "bold" }}
+        >
           {modalTitle}
         </Typography>
 
-        <Typography variant="body2" style={{ marginBottom: "15px", color: "#555" }}>
+        <Typography
+          variant="body2"
+          style={{ marginBottom: "15px", color: "#555" }}
+        >
           {modalDesc}
         </Typography>
 
         {renderField("Sales Organization", "salesOrg", "text", stringOperators)}
-        {renderField("Shipping Point", "shippingPoint", "number", numericOperators)}
+        {renderField(
+          "Shipping Point",
+          "shippingPoint",
+          "number",
+          numericOperators
+        )}
         {renderField("Delivery Date", "deliveryDate", "date", dateOperators)}
-        {renderField("Customer Number", "customerNumber", "number", numericOperators)}
-        {renderField("Delivery Document", "deliveryDocument", "number", numericOperators)}
+        {renderField(
+          "Customer Number",
+          "customerNumber",
+          "number",
+          numericOperators
+        )}
+        {renderField(
+          "Delivery Document",
+          "deliveryDocument",
+          "number",
+          numericOperators
+        )}
 
         <div
           style={{
@@ -167,10 +194,20 @@ export default function RunOutboundDeliveriesModal({
             flexWrap: "wrap",
           }}
         >
-          <Button variant="contained" color="success" size="small" onClick={handleRun}>
+          <Button
+            variant="contained"
+            color="success"
+            size="small"
+            onClick={handleRun}
+          >
             Run
           </Button>
-          <Button variant="outlined" color="error" size="small" onClick={handleClose}>
+          <Button
+            variant="outlined"
+            color="error"
+            size="small"
+            onClick={handleClose}
+          >
             Cancel
           </Button>
         </div>
